@@ -4,7 +4,7 @@
 /**
  * Plugin Name: DN REMP Paywall
  * Plugin URI:  https://remp2020.com
- * Description: REMP Paywall plugin. You need to define DN_REMP_HOST and DN_REMP_TOKEN in your wp-config.php file for this plugin to work correctly and then use included functions in your theme.
+ * Description: REMP Paywall plugin. You need to install <strong>DN REMP CRM Auth plugin</strong> and define <code>DN_REMP_HOST</code> and <code>DN_REMP_TOKEN</code> in your wp-config.php file for this plugin to work correctly and then use included functions in your theme.
  * Version:     1.0.0
  * Author:      Michal Rusina
  * Author URI:  http://michalrusina.sk/
@@ -16,6 +16,8 @@ if ( !defined( 'WPINC' ) ) {
 }
 
 register_activation_hook( __FILE__, 'remp_paywall_activate' );
+
+add_shortcode( 'lock', 'remp_lock_shortcode' );
 
 add_action( 'init', 'remp_paywall_init' );
 add_action( 'the_content', 'remp_paywall_the_content' );
@@ -104,7 +106,40 @@ function remp_paywall_save_post( $post_id, $post, $update ) {
  */
 
 function remp_paywall_the_content( $content ) {
+	global $post;
+
+	if ( !function_exists( 'remp_get_user' ) ) { // fail silently
+		return $content;
+	}
+
+	$position = mb_strpos( $content, '[lock]' );
+
+	if ( $lock_position !== false ) {
+		$type = get_post_meta( $post->ID, 'dn_remp_paywall_access', true );
+		$subscriptions = remp_get_user( 'subscriptions' );
+
+/*
+$types = current types;
+*/
+
+		if ( !in_array( $type, $types ) ) {
+			$content = force_balance_tags( mb_substr( $content, 0, $position ) );
+			$content = apply_filters( 'remp_content_locked', $content, $types, $type );
+		}
+	}
+
 	return $content;
+}
+
+
+/**
+ * Lock shortcode anchor
+ *
+ * @since 1.0.0
+ */
+
+function remp_lock_shortcode() {
+	return sprintf('<span id="remp_lock_anchor"></span>' );
 }
 
 
