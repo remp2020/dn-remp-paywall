@@ -114,13 +114,20 @@ function remp_paywall_the_content( $content ) {
 
 	$position = mb_strpos( $content, '[lock]' );
 
-	if ( $lock_position !== false ) {
+	if ( $position !== false ) {
 		$type = get_post_meta( $post->ID, 'dn_remp_paywall_access', true );
+		$types = [];
 		$subscriptions = remp_get_user( 'subscriptions' );
 
-/*
-$types = current types;
-*/
+		if ( is_array( $subscriptions ) ) {
+			$subscriptions = $subscriptions['subscriptions'];
+
+			foreach ( $subscriptions as $subscription ) {
+				if ( true ) { // TODO
+					$types = array_merge( $types, $subscription['access'] );
+				}
+			}
+		}
 
 		if ( !in_array( $type, $types ) ) {
 			$content = force_balance_tags( mb_substr( $content, 0, $position ) );
