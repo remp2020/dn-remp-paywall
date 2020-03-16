@@ -15,8 +15,83 @@ if ( !defined( 'WPINC' ) ) {
 	die;
 }
 
+register_activation_hook( __FILE__, 'remp_paywall_activate' );
 
-add_action( 'the_content', 'remp_the_content' );
+add_action( 'init', 'remp_paywall_init' );
+add_action( 'the_content', 'remp_paywall_the_content' );
+add_action( 'post_submitbox_misc_actions', 'remp_paywall_post_submitbox_misc_actions' );
+add_action( 'save_post', 'remp_paywall_save_post', 10, 3 );
+
+
+/**
+ * Add access controls for article
+ *
+ * @since 1.0.0
+ */
+
+function remp_paywall_post_submitbox_misc_actions() {
+	global $post;
+
+	$types = get_transient( 'dn_remp_paywall_types' );
+	$current = get_post_meta( $post->ID, 'dn_remp_paywall_access', true );
+
+	if ( $types === false ) {
+		$headers = [
+			'Content-Type' => 'application/json',
+			'Authorization' => 'Bearer ' . DN_REMP_PAYWALL_TOKEN
+		];
+
+		$response = wp_remote_get( DN_REMP_HOST . '/api/v1/content-access/list', [ 'headers' => $headers ] );
+
+		if ( is_wp_error( $response ) ) {
+			error_log( 'REMP get_user_subscriptions: ' . $response->get_error_message() );
+
+			return;
+		}
+
+		set_transient( 'dn_remp_paywall_types', $types, 60*60 );
+	}
+
+	$html = '';
+	$options = json_decode( $response['body'], true );
+	$current = get_post_meta( $post->ID, 'dn_remp_paywall_access', true );
+
+	foreach ( $options as $option ) {
+		$html .= sprintf( '<option value="%s"%s>%s</option>',
+			$option['code'],
+			$option['code'] == $current ?  ' selected': '',
+			$option['description']
+		);
+	}
+
+	printf( '<div class="misc-pub-section"><label class="selectit">%1$s<select id="%2$s" style="display:block;width:100%%;margin-top:4px;" name="%2$s">%3$s</select></label></div>',
+		__( 'Prístup k článku', 'dn-remp-paywall' ),
+		'dn_remp_paywall_access',
+		$html
+	);
+}
+
+
+/**
+ * Save access controls for article
+ *
+ * @since 1.0.0
+ */
+
+function remp_paywall_save_post( $post_id, $post, $update ) {
+	if ( !current_user_can( 'edit_post', $post_id ) || wp_is_post_autosave( $post_id ) ) {
+		return;
+	}
+
+	$key = 'dn_remp_paywall_access';
+
+	if ( isset( $_POST[ $key ] ) ) {
+		update_post_meta( $post_id, $key, $_POST[ $key ] );
+	} else {
+		delete_post_meta( $post_id, $key );
+	}
+}
+
 
 /**
  * Strips the post content according to current subscription
@@ -28,25 +103,37 @@ add_action( 'the_content', 'remp_the_content' );
  * @return string Returns stripped or full post content according to current subscription
  */
 
-function remp_the_content( $content ) {
+function remp_paywall_the_content( $content ) {
 	return $content;
 }
 
-/*
-/api/v1/content-access/list
-[
-    {
-        "code": "web",
-        "description": "Web"
-    },
-    {
-        "code": "mobile",
-        "description": "Mobilné aplikácie"
-    },
-    {
-        "code": "club",
-        "description": "Klub"
-    },
-    // ...
-]
-*/
+
+/**
+ * Localisations loaded
+ *
+ * @since 1.0.0
+ */
+
+function remp_paywall_init() {
+	load_plugin_textdomain( 'dn-remp-paywall' );
+}
+
+
+/**
+ * Dependencies check
+ *
+ * @since 1.0.0
+ */
+
+function remp_paywall_activate() {
+	if ( !function_exists( 'is_plugin_active_for_network' ) ) {
+		include_once( ABSPATH . '/wp-admin/includes/plugin.php' );
+	}
+
+	if ( current_user_can( 'activate_plugins' ) && ( !function_exists( 'remp_get_user' ) || !defined( 'DN_REMP_HOST' ) || !defined( 'DN_REMP_PAYWALL_TOKEN' ) ) ) {
+		deactivate_plugins( plugin_basename( __FILE__ ) );
+
+		die( __( 'This plugin requires DN REMP CRM Auth plugin to be active, and DN_REMP_HOST and DN_REMP_TOKEN defined in your wp-config.php .', 'dn-remp-paywall' ) );
+	}
+}
+
