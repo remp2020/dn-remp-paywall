@@ -44,6 +44,8 @@ Returns *String* Filtered post content.
 ```php
 add_filter( 'remp_content_locked', function( $content, $types, $type ) {
     $content .= sprintf( "\n\nYour current subscription types are: %s and you are missing %s to see the whole article.", join( ', ', $types ), $type );
+
+    return $content;
 }, 10, 3 );
 ```
 
