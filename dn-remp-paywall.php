@@ -132,7 +132,7 @@ function remp_paywall_the_content( $content ) {
 		$types = [];
 		$subscriptions = remp_get_user( 'subscriptions' );
 
-		if ( is_array( $subscriptions ) ) {
+		if ( is_array( $subscriptions ) && isset( $subscriptions['subscriptions'] ) ) {
 			$subscriptions = $subscriptions['subscriptions'];
 
 			foreach ( $subscriptions as $subscription ) {
