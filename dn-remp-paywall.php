@@ -108,13 +108,14 @@ function remp_paywall_save_post( $post_id, $post, $update ) {
 function remp_paywall_the_content( $content ) {
 	global $post;
 
-	if ( !function_exists( 'remp_get_user' ) ) { // fail silently
+	if ( !function_exists( 'remp_get_user' ) ) { // fail silently, return full post_content
 		return $content;
 	}
 
 	$position = mb_strpos( $content, '[lock]' );
 
 	if ( $position !== false ) {
+		$now = new DateTime();
 		$type = get_post_meta( $post->ID, 'dn_remp_paywall_access', true );
 		$types = [];
 		$subscriptions = remp_get_user( 'subscriptions' );
@@ -122,8 +123,12 @@ function remp_paywall_the_content( $content ) {
 		if ( is_array( $subscriptions ) ) {
 			$subscriptions = $subscriptions['subscriptions'];
 
+
 			foreach ( $subscriptions as $subscription ) {
-				if ( true ) { // TODO
+				$start = new DateTime( $subscription['start_at'] );
+				$end = new DateTime( $subscription['end_at'] );
+
+				if ( ( $start < $now && $now < $end ) ) {
 					$types = array_merge( $types, $subscription['access'] );
 				}
 			}
@@ -131,11 +136,19 @@ function remp_paywall_the_content( $content ) {
 
 		if ( !in_array( $type, $types ) ) {
 			$content = force_balance_tags( mb_substr( $content, 0, $position ) );
-			$content = apply_filters( 'remp_content_locked', $content, $types, $type );
 		}
 	}
 
-	return $content;
+	/**
+	 * Filters the article content .
+	 *
+	 * @since 3.1.0
+	 *
+	 * @param string $content Post content after stripping of the the paywall part.
+	 * @param string $types REMP user access tags from all active subscriptions.
+	 * @param string $type REMP access tag needed for this post.
+	 */
+	return apply_filters( 'remp_content_locked', $content, $types, $type );
 }
 
 
