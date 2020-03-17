@@ -1,6 +1,6 @@
 # REMP Paywall plugin
 
-The REMP CRM Auth plugin allows you to read basic user and subscription information about CRM user visiting your WP website. Also adds simple login form with handling.
+The REMP Paywall plugin allows you to control access to posts according to REMP user access tags.
 
 ## How to install
 
@@ -52,7 +52,7 @@ If you need to site-wide alter the behavior of locking articles, use the `dn_rem
 #### *Params:*
 
 | Name | Value |  Description |
-| --- |---|  --- |
+| --- |--- | --- |
 | type | *String* | REMP access tag needed to unlock this article |
 | post | *String* | Post object |
 
