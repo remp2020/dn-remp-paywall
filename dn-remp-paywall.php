@@ -51,18 +51,19 @@ function remp_paywall_post_submitbox_misc_actions() {
 			return;
 		}
 
+		$types = json_decode( $response['body'], true );
+
 		set_transient( 'dn_remp_paywall_types', $types, 60*60 );
 	}
 
 	$html = sprintf( '<option value="">%s</option>', __( 'Odomknutý', 'dn-remp-paywall' ) );
-	$options = json_decode( $response['body'], true );
 	$current = get_post_meta( $post->ID, 'dn_remp_paywall_access', true );
 
-	foreach ( $options as $option ) {
+	foreach ( $types as $type ) {
 		$html .= sprintf( '<option value="%s"%s>%s</option>',
-			$option['code'],
-			$option['code'] == $current ?  ' selected': '',
-			$option['description']
+			$type['code'],
+			$type['code'] == $current ?  ' selected': '',
+			$type['description']
 		);
 	}
 
