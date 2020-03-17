@@ -43,30 +43,7 @@ Returns *String* Filtered post content.
 
 ```php
 add_filter( 'remp_content_locked', function( $content, $types, $type ) {
-	$str_types = 'none';
-	if ( count( $types ) > 0 ){
-		$str_types = join( ', ', $types );
-	}
-
-	$content .= '<hr>';
-
-	if ( function_exists( 'remp_login_form' ) && function_exists( 'remp_get_user_token' ) ) {
-		if ( remp_get_user_token() !== false ){
-			$content .= sprintf( 
-				"<p>Your current subscription types are: <em>%s</em> and you are missing <em>%s</em> to see the whole article.</p>", 
-				$str_types, 
-				$type 
-			);		
-		} else {
-			$content .= '<p>You need a valid subscription to see the whole article. Please log in: </p>';
-			$content .= remp_login_form( $echo = false );
-		}
-	} else {
-		$content .= '<p>You need valid subscription to see the whole article.</p>';
-	}
-
-	return $content;
-
+    $content .= sprintf( "\n\nYour current subscription types are: %s and you are missing %s to see the whole article.", join( ', ', $types ), $type );
 }, 10, 3 );
 ```
 
