@@ -34,7 +34,7 @@ add_action( 'save_post', 'remp_paywall_save_post', 10, 3 );
 function remp_paywall_post_submitbox_misc_actions() {
 	global $post;
 
-	$types = get_transient( 'dn_remp_paywall_types' );
+	$types = false; //get_transient( 'dn_remp_paywall_types' );
 	$current = get_post_meta( $post->ID, 'dn_remp_paywall_access', true );
 
 	if ( $types === false ) {
@@ -54,7 +54,7 @@ function remp_paywall_post_submitbox_misc_actions() {
 		set_transient( 'dn_remp_paywall_types', $types, 60*60 );
 	}
 
-	$html = '';
+	$html = sprintf( '<option value="">%s</option>', __( 'Odomknutý', 'dn-remp-paywall' ) );
 	$options = json_decode( $response['body'], true );
 	$current = get_post_meta( $post->ID, 'dn_remp_paywall_access', true );
 
@@ -114,15 +114,25 @@ function remp_paywall_the_content( $content ) {
 
 	$position = mb_strpos( $content, '[lock]' );
 
-	if ( $position !== false ) {
+	/**
+	 * Filters the REMP access tag needed.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @param string $type REMP access tag needed for this post.
+	 * @param string $post Post object.
+	 */
+
+	$type = get_post_meta( $post->ID, 'dn_remp_paywall_access', true );
+	$type = apply_filters( 'dn_remp_paywall_access', $type, $post );
+
+	if ( $position !== false && !empty( $type ) ) {
 		$now = new DateTime();
-		$type = get_post_meta( $post->ID, 'dn_remp_paywall_access', true );
 		$types = [];
 		$subscriptions = remp_get_user( 'subscriptions' );
 
 		if ( is_array( $subscriptions ) ) {
 			$subscriptions = $subscriptions['subscriptions'];
-
 
 			foreach ( $subscriptions as $subscription ) {
 				$start = new DateTime( $subscription['start_at'] );
@@ -136,19 +146,22 @@ function remp_paywall_the_content( $content ) {
 
 		if ( !in_array( $type, $types ) ) {
 			$content = force_balance_tags( mb_substr( $content, 0, $position ) );
+
+			/**
+			 * Filters the article content.
+			 *
+			 * @since 3.1.0
+			 *
+			 * @param string $content Post content after stripping of the the paywall part.
+			 * @param string $types REMP user access tags from all active subscriptions.
+			 * @param string $type REMP access tag needed for this post.
+			 */
+			
+			$content = apply_filters( 'remp_content_locked', $content, $types, $type );
 		}
 	}
 
-	/**
-	 * Filters the article content .
-	 *
-	 * @since 3.1.0
-	 *
-	 * @param string $content Post content after stripping of the the paywall part.
-	 * @param string $types REMP user access tags from all active subscriptions.
-	 * @param string $type REMP access tag needed for this post.
-	 */
-	return apply_filters( 'remp_content_locked', $content, $types, $type );
+	return $content;
 }
 
 
