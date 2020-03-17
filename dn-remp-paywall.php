@@ -34,7 +34,7 @@ add_action( 'save_post', 'remp_paywall_save_post', 10, 3 );
 function remp_paywall_post_submitbox_misc_actions() {
 	global $post;
 
-	$types = false; //get_transient( 'dn_remp_paywall_types' );
+	$types = get_transient( 'dn_remp_paywall_types' );
 	$current = get_post_meta( $post->ID, 'dn_remp_paywall_access', true );
 
 	if ( $types === false ) {
