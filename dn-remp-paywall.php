@@ -23,19 +23,59 @@ add_action( 'init', 'remp_paywall_init' );
 add_action( 'the_content', 'remp_paywall_the_content' );
 add_action( 'post_submitbox_misc_actions', 'remp_paywall_post_submitbox_misc_actions' );
 add_action( 'save_post', 'remp_paywall_save_post', 10, 3 );
+add_action( 'enqueue_block_editor_assets', 'remp_paywall_enqueue_assets' );
 
 
 /**
- * Add access controls for article
+ * Register paywall access code post meta
  *
  * @since 1.0.0
  */
 
-function remp_paywall_post_submitbox_misc_actions() {
-	global $post;
+register_post_meta( 'post', '_dn_remp_paywall_access', [
+	'show_in_rest' => true,
+	'single' => true,
+	'type' => 'string',
+	'auth_callback' => function() {
+		return current_user_can( 'edit_posts' );
+	}
+] );
 
+
+/**
+ * Enqueue scripts for block editor
+ *
+ * @since 1.0.0
+ */
+
+function remp_paywall_enqueue_assets() {
+	$types = remp_paywall_get_types();
+	$options = [ [
+		'label' => __( 'Odomknutý', 'dn-remp-paywall' ),
+		'value' => ''
+	] ];
+
+	foreach ( $types as $type ) {
+		$options[] = [
+			'label' => $type['description'],
+			'value' => $type['code']
+		];
+	}	
+
+	wp_enqueue_script( 'dn-remp-paywall-js', plugins_url( 'dn-remp-paywall.js', __FILE__ ), [ 'wp-blocks', 'wp-element', 'wp-components' ] );
+	wp_localize_script( 'dn-remp-paywall-js', 'dn_remp_paywall_access', $options );
+	wp_enqueue_style( 'dn-remp-paywall-css', plugins_url( 'dn-remp-paywall.css', __FILE__ ), false );
+}
+
+
+/**
+ * Get access tags from transient or load them and save to transient
+ *
+ * @since 1.0.0
+ */
+
+function remp_paywall_get_types() {
 	$types = get_transient( 'dn_remp_paywall_types' );
-	$current = get_post_meta( $post->ID, 'dn_remp_paywall_access', true );
 
 	if ( $types === false ) {
 		$headers = [
@@ -48,7 +88,7 @@ function remp_paywall_post_submitbox_misc_actions() {
 		if ( is_wp_error( $response ) ) {
 			error_log( 'REMP get_user_subscriptions: ' . $response->get_error_message() );
 
-			return;
+			return []; // fail silently
 		}
 
 		$types = json_decode( $response['body'], true );
@@ -56,8 +96,22 @@ function remp_paywall_post_submitbox_misc_actions() {
 		set_transient( 'dn_remp_paywall_types', $types, 60*60 );
 	}
 
+	return $types;
+}
+
+
+/**
+ * Add access controls for article
+ *
+ * @since 1.0.0
+ */
+
+function remp_paywall_post_submitbox_misc_actions() {
+	global $post;
+
+	$current = get_post_meta( $post->ID, '_dn_remp_paywall_access', true );
+	$types = remp_paywall_get_types();
 	$html = sprintf( '<option value="">%s</option>', __( 'Odomknutý', 'dn-remp-paywall' ) );
-	$current = get_post_meta( $post->ID, 'dn_remp_paywall_access', true );
 
 	foreach ( $types as $type ) {
 		$html .= sprintf( '<option value="%s"%s>%s</option>',
@@ -86,7 +140,7 @@ function remp_paywall_save_post( $post_id, $post, $update ) {
 		return;
 	}
 
-	$key = 'dn_remp_paywall_access';
+	$key = '_dn_remp_paywall_access';
 
 	if ( isset( $_POST[ $key ] ) ) {
 		update_post_meta( $post_id, $key, $_POST[ $key ] );
@@ -113,7 +167,11 @@ function remp_paywall_the_content( $content ) {
 		return $content;
 	}
 
-	$position = mb_strpos( $content, '[lock]' );
+	$position = mb_strpos( $content, '<div id="remp_lock_anchor"' );
+
+	if ( $position === false ) {
+		$position = mb_strpos( $content, '[lock]' );
+	}
 
 	/**
 	 * Filters the REMP access tag needed.
@@ -124,7 +182,7 @@ function remp_paywall_the_content( $content ) {
 	 * @param string $post Post object.
 	 */
 
-	$type = get_post_meta( $post->ID, 'dn_remp_paywall_access', true );
+	$type = get_post_meta( $post->ID, '_dn_remp_paywall_access', true );
 	$type = apply_filters( 'dn_remp_paywall_access', $type, $post );
 
 	if ( $position !== false && !empty( $type ) ) {
@@ -132,7 +190,7 @@ function remp_paywall_the_content( $content ) {
 		$types = [];
 		$subscriptions = remp_get_user( 'subscriptions' );
 
-		if ( is_array( $subscriptions ) && isset( $subscriptions['subscriptions'] ) ) {
+		if ( is_array( $subscriptions ) ) {
 			$subscriptions = $subscriptions['subscriptions'];
 
 			foreach ( $subscriptions as $subscription ) {

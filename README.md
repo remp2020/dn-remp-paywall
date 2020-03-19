@@ -14,7 +14,7 @@ Then, from your WordPress administration panel, go to `Plugins > Add New` and cl
 
 From your WordPress administration panel go to `Plugins > Installed Plugins` and scroll down until you find `DN REMP CRM Auth` plugin. You will need to activate it first.
 
-You will also need to install *REMP CRM Auth plugin* (we need this one to acces REMP data) and *Classic Editor* (because we arecurrently supporting the only classic editor).
+You will also need to install *REMP CRM Auth plugin* (we need this one to acces REMP data).
 
 ### Configuration
 
@@ -43,9 +43,7 @@ Returns *String* Filtered post content.
 
 ```php
 add_filter( 'remp_content_locked', function( $content, $types, $type ) {
-    $content .= sprintf( "\n\nYour current subscription types are: %s and you are missing %s to see the whole article.", join( ', ', $types ), $type );
-
-    return $content;
+    $content .= printf( "\n\nYour current subscription types are: %s and you are missing %s to see the whole article.", join( ', ', $types ), $type );
 }, 10, 3 );
 ```
 
@@ -70,6 +68,6 @@ CRM requires every call to be authorized by a token. For each request presence o
 
 ### Usage during publishing process
 
-First, indicate the place where the post content should be cut-off for visitors without correct subscription by placing `[lock]` shortcode in your *article content*. Without this shortcode, the whole article will be visible for all your visitors.
+First, indicate the place where the post content should be cut-off for visitors without correct subscription either by inserting `REMP LOCK` block (if you are using block editor) or `[lock]` shortcode (if you are using classic editor) in your *article content*. Without this shortcode, the whole article will be visible for all your visitors.
 
 Then set the subscription level needed for this article in *sidebar*.
