@@ -18,11 +18,11 @@ You will also need to install *REMP CRM Auth plugin* (we need this one to acces 
 
 ### Configuration
 
-To configure the plugin, and add `DN_REMP_HOST` and `DN_REMP_PAYWALL_TOKEN` constant definitions into your `wp-config.php` file with the correct host/token of REMP installation. 
+To configure the plugin, and add `DN_REMP_CRM_HOST` and `DN_REMP_CRM_TOKEN` constant definitions into your `wp-config.php` file with the correct host/token of REMP installation. 
 
 ```php
-define( 'DN_REMP_HOST', 'https://word.press/remp' );
-define( 'DN_REMP_PAYWALL_TOKEN', 'foobar' );
+define( 'DN_REMP_CRM_HOST', 'https://word.press/remp' );
+define( 'DN_REMP_CRM_TOKEN', 'foobar' );
 ```
 
 By default this plugin *does not* show any paywall or CTA box after the cut-off. If you wish to do this, use `remp_content_locked` filter. You can customize the paywall using provided information about user access tags and tag needed for this article.

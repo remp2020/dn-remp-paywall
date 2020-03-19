@@ -4,7 +4,7 @@
 /**
  * Plugin Name: DN REMP Paywall
  * Plugin URI:  https://remp2020.com
- * Description: REMP Paywall plugin. You need to install <strong>DN REMP CRM Auth plugin</strong> and define <code>DN_REMP_HOST</code> and <code>DN_REMP_TOKEN</code> in your wp-config.php file for this plugin to work correctly and then use included functions in your theme.
+ * Description: REMP Paywall plugin. You need to install <strong>DN REMP CRM Auth</strong> plugin and define <code>DN_REMP_CRM_HOST</code> and <code>DN_REMP_CRM_TOKEN</code> in your <code>wp-config.php</code> file for this plugin to work correctly and then use included functions in your theme.
  * Version:     1.0.0
  * Author:      Michal Rusina
  * Author URI:  http://michalrusina.sk/
@@ -80,10 +80,10 @@ function remp_paywall_get_types() {
 	if ( $types === false ) {
 		$headers = [
 			'Content-Type' => 'application/json',
-			'Authorization' => 'Bearer ' . DN_REMP_PAYWALL_TOKEN
+			'Authorization' => 'Bearer ' . DN_REMP_CRM_TOKEN
 		];
 
-		$response = wp_remote_get( DN_REMP_HOST . '/api/v1/content-access/list', [ 'headers' => $headers ] );
+		$response = wp_remote_get( DN_REMP_CRM_HOST . '/api/v1/content-access/list', [ 'headers' => $headers ] );
 
 		if ( is_wp_error( $response ) ) {
 			error_log( 'REMP get_user_subscriptions: ' . $response->get_error_message() );
@@ -257,10 +257,10 @@ function remp_paywall_activate() {
 		include_once( ABSPATH . '/wp-admin/includes/plugin.php' );
 	}
 
-	if ( current_user_can( 'activate_plugins' ) && ( !function_exists( 'remp_get_user' ) || !defined( 'DN_REMP_HOST' ) || !defined( 'DN_REMP_PAYWALL_TOKEN' ) ) ) {
+	if ( current_user_can( 'activate_plugins' ) && ( !function_exists( 'remp_get_user' ) || !defined( 'DN_REMP_CRM_HOST' ) || !defined( 'DN_REMP_CRM_TOKEN' ) ) ) {
 		deactivate_plugins( plugin_basename( __FILE__ ) );
 
-		die( __( 'This plugin requires DN REMP CRM Auth plugin to be active, and DN_REMP_HOST and DN_REMP_TOKEN defined in your wp-config.php .', 'dn-remp-paywall' ) );
+		die( __( 'This plugin requires <strong>DN REMP CRM Auth</strong> plugin to be active, and <code>DN_REMP_CRM_HOST</code> and <code>DN_REMP_CRM_TOKEN</code> defined in your <code>wp-config.php</code> .', 'dn-remp-paywall' ) );
 	}
 }
 
