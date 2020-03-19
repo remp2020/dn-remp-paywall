@@ -14,11 +14,11 @@ Then, from your WordPress administration panel, go to `Plugins > Add New` and cl
 
 From your WordPress administration panel go to `Plugins > Installed Plugins` and scroll down until you find `DN REMP CRM Auth` plugin. You will need to activate it first.
 
-You will also need to install *REMP CRM Auth plugin* (we need this one to acces REMP data).
+You will also need to install *REMP CRM Auth plugin* (we need this one to access REMP data).
 
 ### Configuration
 
-To configure the plugin, and add `DN_REMP_CRM_HOST` and `DN_REMP_CRM_TOKEN` constant definitions into your `wp-config.php` file with the correct host/token of REMP installation. 
+To configure the plugin, and add `DN_REMP_CRM_HOST` and `DN_REMP_CRM_TOKEN` constant definitions into your `wp-config.php` file with the correct host/token of REMP installation. The token can be obtained in your CRM installation under `/api/api-tokens-admin/`.
 
 ```php
 define( 'DN_REMP_CRM_HOST', 'https://word.press/remp' );
