@@ -16,6 +16,10 @@ From your WordPress administration panel go to `Plugins > Installed Plugins` and
 
 You will also need to install *REMP CRM Auth plugin* (we need this one to access REMP data).
 
+During publishing process, indicate the place where the post content should be cut-off for visitors without correct subscription either by inserting `REMP LOCK` block (if you are using block editor) or `[lock]` shortcode (if you are using classic editor) in your *article content*. Without this shortcode, the whole article will be visible for all your visitors.
+
+Then set the subscription level needed for this article in *sidebar*.
+
 ### Configuration
 
 To configure the plugin, and add `DN_REMP_CRM_HOST` and `DN_REMP_CRM_TOKEN` constant definitions into your `wp-config.php` file with the correct host/token of REMP installation. The token can be obtained in your CRM installation under `/api/api-tokens-admin/`.
@@ -65,9 +69,3 @@ If you wish to scroll to the locked part (for instance after succesful payment),
 #### Authorization token
 
 CRM requires every call to be authorized by a token. For each request presence of `Authorization: Bearer token` HTTP header is validated. The token found in the header needs to match the token assigned to this plugin.
-
-### Usage during publishing process
-
-First, indicate the place where the post content should be cut-off for visitors without correct subscription either by inserting `REMP LOCK` block (if you are using block editor) or `[lock]` shortcode (if you are using classic editor) in your *article content*. Without this shortcode, the whole article will be visible for all your visitors.
-
-Then set the subscription level needed for this article in *sidebar*.
