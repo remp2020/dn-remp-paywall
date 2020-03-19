@@ -243,6 +243,36 @@ function remp_lock_shortcode() {
 
 function remp_paywall_init() {
 	load_plugin_textdomain( 'dn-remp-paywall' );
+
+	if ( current_user_can( 'activate_plugins' ) && !function_exists( 'remp_get_user' ) ) {
+		add_action( 'admin_init', 'remp_paywall_deactivate' );
+		add_action( 'admin_notices', 'remp_paywall_deactivate_notice' );
+		unset( $_GET[ 'activate' ] );
+	}
+}
+
+
+/**
+ * Deactivate uppon unsuccessful dependency check
+ *
+ * @since 1.0.0
+ */
+
+function remp_paywall_deactivate() {
+	deactivate_plugins( plugin_basename( __FILE__ ) );	
+}
+
+
+/**
+ * Adds admin notice when deactivated uppon unsuccessful dependency check
+ *
+ * @since 1.0.0
+ */
+
+function remp_paywall_deactivate_notice() {
+	printf( '<div class="error"><p>%s</p></div>',
+		__( 'The plugin <strong>DN REMP Paywall</strong> requires <strong>DN REMP CRM Auth</strong> plugin to be installed.', 'dn-remp-crm-auth' )
+	);
 }
 
 
@@ -255,12 +285,6 @@ function remp_paywall_init() {
 function remp_paywall_activate() {
 	if ( !function_exists( 'is_plugin_active_for_network' ) ) {
 		include_once( ABSPATH . '/wp-admin/includes/plugin.php' );
-	}
-
-	if ( current_user_can( 'activate_plugins' ) && ( !function_exists( 'remp_get_user' ) || !defined( 'DN_REMP_CRM_HOST' ) || !defined( 'DN_REMP_CRM_TOKEN' ) ) ) {
-		deactivate_plugins( plugin_basename( __FILE__ ) );
-
-		die( __( 'This plugin requires <strong>DN REMP CRM Auth</strong> plugin to be active, and <code>DN_REMP_CRM_HOST</code> and <code>DN_REMP_CRM_TOKEN</code> defined in your <code>wp-config.php</code> .', 'dn-remp-paywall' ) );
 	}
 }
 
