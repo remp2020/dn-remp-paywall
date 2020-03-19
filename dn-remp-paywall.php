@@ -51,7 +51,7 @@ register_post_meta( 'post', '_dn_remp_paywall_access', [
 function remp_paywall_enqueue_assets() {
 	$types = remp_paywall_get_types();
 	$options = [ [
-		'label' => __( 'Odomknutý', 'dn-remp-paywall' ),
+		'label' => __( 'Unlocked', 'dn-remp-paywall' ),
 		'value' => ''
 	] ];
 
