@@ -1,9 +1,9 @@
-( function( wp ) {
+(function (wp) {
 	var el = wp.element.createElement;
 	var registerBlockType = wp.blocks.registerBlockType;
 	var SelectControl = wp.components.SelectControl;
- 
-	registerBlockType( 'remp-paywall/lock', {
+
+	registerBlockType('remp-paywall/lock', {
 		title: 'REMP LOCK',
 		icon: 'lock',
 		category: 'common',
@@ -11,34 +11,30 @@
 			blockValue: {
 				type: 'string',
 				source: 'meta',
-				meta: '_dn_remp_paywall_access',
-			},
+				meta: '_dn_remp_paywall_access'
+			}
 		},
-		edit: function( props ) {
+		edit: function (props) {
 			var className = props.className;
 			var setAttributes = props.setAttributes;
- 
-			function updateBlockValue( blockValue ) {
-				setAttributes( { blockValue } );
+
+			function updateBlockValue(blockValue) {
+				setAttributes({ blockValue });
 			}
 
 			return el(
 				'div',
 				{ className: className },
-				el( SelectControl, {
+				el(SelectControl, {
 					label: 'LOCK',
 					value: props.attributes.blockValue,
 					options: window.dn_remp_paywall_access,
-					onChange: updateBlockValue,
-				} )
+					onChange: updateBlockValue
+				})
 			);
 		},
-		save: function() {
-			return el(
-				"div",
-				{ id: "remp_lock_anchor" },
-				el( wp.element.RawHTML, null )
-			);
+		save: function () {
+			return el('div', { id: 'remp_lock_anchor' }, el(wp.element.RawHTML, null));
 		}
-	} );
-} )( window.wp );
+	});
+})(window.wp);
