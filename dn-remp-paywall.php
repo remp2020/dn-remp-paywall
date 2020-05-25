@@ -54,7 +54,7 @@ function remp_paywall_enqueue_assets() {
 		]
 	];
 
-	foreach ($types as $type) {
+	foreach ($types['types'] as $type) {
 		$options[] = [
 			'label' => $type['description'],
 			'value' => $type['code']
@@ -67,6 +67,7 @@ function remp_paywall_enqueue_assets() {
 		'wp-components'
 	]);
 	wp_localize_script('dn-remp-paywall-js', 'dn_remp_paywall_access', $options);
+	wp_localize_script('dn-remp-paywall-js', 'dn_remp_paywall_error', $types['error_msg'] ?: ' ');
 	wp_enqueue_style('dn-remp-paywall-css', plugins_url('dn-remp-paywall.css', __FILE__), false);
 }
 
@@ -78,6 +79,7 @@ function remp_paywall_enqueue_assets() {
 
 function remp_paywall_get_types() {
 	$types = get_transient('dn_remp_paywall_types');
+	$error_msg = '';
 
 	if ($types === false) {
 		$headers = [
@@ -87,18 +89,39 @@ function remp_paywall_get_types() {
 
 		$response = wp_remote_get(DN_REMP_CRM_HOST . '/api/v1/content-access/list', ['headers' => $headers]);
 
-		if (is_wp_error($response)) {
-			error_log('REMP get_user_subscriptions: ' . $response->get_error_message());
-
-			return []; // fail silently
+		switch (wp_remote_retrieve_response_code($response)) {
+			case '':
+				$error_msg = is_wp_error($response)
+					? $response->get_error_message()
+					: __('Chyba komnunikácie s CRM', 'dn-remp-paywall');
+				$types = [];
+				break;
+			case 200:
+				$types = json_decode($response['body'], true);
+				if (count($types) == 0) {
+					$error_msg = __(
+						'Odpoveď z CRM neobsahuje žiadne typy predplatného. Boli definované?',
+						'dn-remp-paywall'
+					);
+				} else {
+					set_transient('dn_remp_paywall_types', $types, 60 * 60);
+				}
+				break;
+			default:
+				$error = json_decode(wp_remote_retrieve_body($response), true);
+				$error_msg = $error['message'] ?? __('CRM vrátilo chybu bez bližšieho popisu', 'dn-remp-paywall');
+				$types = [];
 		}
 
-		$types = json_decode($response['body'], true);
-
-		set_transient('dn_remp_paywall_types', $types, 60 * 60);
+		if (!empty($error_msg)) {
+			error_log('dn-remp-paywall error: ' . $error_msg);
+			$error_msg = "REMP CRM Error: $error_msg";
+		}
 	}
-
-	return $types;
+	return [
+		'types' => $types,
+		'error_msg' => $error_msg
+	];
 }
 
 /**
@@ -114,7 +137,7 @@ function remp_paywall_post_submitbox_misc_actions() {
 	$types = remp_paywall_get_types();
 	$html = sprintf('<option value="">%s</option>', __('Odomknutý', 'dn-remp-paywall'));
 
-	foreach ($types as $type) {
+	foreach ($types['types'] as $type) {
 		$html .= sprintf(
 			'<option value="%s"%s>%s</option>',
 			$type['code'],
@@ -124,10 +147,16 @@ function remp_paywall_post_submitbox_misc_actions() {
 	}
 
 	printf(
-		'<div class="misc-pub-section"><label class="selectit">%1$s<select id="%2$s" style="display:block;width:100%%;margin-top:4px;" name="%2$s">%3$s</select></label></div>',
+		'<div class="misc-pub-section">
+					<label class="selectit">%1$s
+						<select id="%2$s" style="display:block;width:100%%;margin-top:4px;" name="%2$s">%3$s</select>
+					</label>
+					%4$s
+				</div>',
 		__('Prístup k článku', 'dn-remp-paywall'),
 		'dn_remp_paywall_access',
-		$html
+		$html,
+		!empty($types['error_msg']) ? "<div class='error-message'><p>${types['error_msg']}</p></div>" : ''
 	);
 }
 

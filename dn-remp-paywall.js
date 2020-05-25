@@ -27,6 +27,7 @@
 				{ className: className },
 				el(SelectControl, {
 					label: 'LOCK',
+					help: window.dn_remp_paywall_error,
 					value: props.attributes.blockValue,
 					options: window.dn_remp_paywall_access,
 					onChange: updateBlockValue
