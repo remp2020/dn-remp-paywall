@@ -219,14 +219,21 @@ function remp_paywall_the_content($content) {
 	if ($position !== false && !empty($type)) {
 		$now = new DateTime();
 		$types = [];
-		$subscriptions = remp_get_user('subscriptions');
+
+		$response = remp_get_user('subscriptions');
+		$subscriptions = $response['body'] ?? null;
+		$error_msg = $response['error_msg'] ?? null;
+
+		if (!empty($error_msg)) {
+			$content = sprintf('<script>console.error("DN REMP Paywall Error: %s")</script>', $error_msg) . $content;
+		}
 
 		if (is_array($subscriptions)) {
 			$subscriptions = $subscriptions['subscriptions'];
 
 			foreach ($subscriptions as $subscription) {
-				$start = new DateTime($subscription['start_at']);
-				$end = new DateTime($subscription['end_at']);
+				$start = new DateTime($subscription['start_at']['date']);
+				$end = new DateTime($subscription['end_at']['date']);
 
 				if ($start < $now && $now < $end) {
 					$types = array_merge($types, $subscription['access']);
