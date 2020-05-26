@@ -232,8 +232,8 @@ function remp_paywall_the_content($content) {
 			$subscriptions = $subscriptions['subscriptions'];
 
 			foreach ($subscriptions as $subscription) {
-				$start = new DateTime($subscription['start_at']['date']);
-				$end = new DateTime($subscription['end_at']['date']);
+				$start = new DateTime($subscription['start_at']);
+				$end = new DateTime($subscription['end_at']);
 
 				if ($start < $now && $now < $end) {
 					$types = array_merge($types, $subscription['access']);
