@@ -154,7 +154,7 @@ function remp_paywall_post_submitbox_misc_actions() {
 					%4$s
 				</div>',
 		__('Prístup k článku', 'dn-remp-paywall'),
-		'dn_remp_paywall_access',
+		'_dn_remp_paywall_access',
 		$html,
 		!empty($types['error_msg']) ? "<div class='error-message'><p>${types['error_msg']}</p></div>" : ''
 	);
