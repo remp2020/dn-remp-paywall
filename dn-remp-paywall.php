@@ -147,12 +147,15 @@ function remp_paywall_post_submitbox_misc_actions() {
 	}
 
 	printf(
-		'<div class="misc-pub-section">
-					<label class="selectit">%1$s
-						<select id="%2$s" style="display:block;width:100%%;margin-top:4px;" name="%2$s">%3$s</select>
-					</label>
-					%4$s
-				</div>',
+		'
+		<div class="misc-pub-section">
+			<input id="%2$s_legacy" name="%2$s_legacy" type="hidden" value="1">
+			<label class="selectit">%1$s
+				<select id="%2$s" style="display:block;width:100%%;margin-top:4px;" name="%2$s">%3$s</select>
+			</label>
+			%4$s
+		</div>
+		',
 		__('Prístup k článku', 'dn-remp-paywall'),
 		'_dn_remp_paywall_access',
 		$html,
@@ -167,11 +170,11 @@ function remp_paywall_post_submitbox_misc_actions() {
  */
 
 function remp_paywall_save_post($post_id, $post, $update) {
-	if (!current_user_can('edit_post', $post_id) || wp_is_post_autosave($post_id)) {
+	$key = '_dn_remp_paywall_access';
+
+	if (!current_user_can('edit_post', $post_id) || wp_is_post_autosave($post_id) || !isset($key . '_legacy')) {
 		return;
 	}
-
-	$key = '_dn_remp_paywall_access';
 
 	if (isset($_POST[$key])) {
 		update_post_meta($post_id, $key, $_POST[$key]);
