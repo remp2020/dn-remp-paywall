@@ -4,7 +4,7 @@
  * Plugin Name: DN REMP Paywall
  * Plugin URI:  https://remp2020.com
  * Description: REMP Paywall plugin. You need to install <strong>DN REMP CRM Auth</strong> plugin and define <code>DN_REMP_CRM_HOST</code> and <code>DN_REMP_CRM_TOKEN</code> in your <code>wp-config.php</code> file for this plugin to work correctly and then use included functions in your theme.
- * Version:     1.1.0
+ * Version:     1.1.1
  * Author:      Michal Rusina
  * Author URI:  http://michalrusina.sk/
  * License:     MIT
