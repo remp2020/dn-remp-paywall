@@ -172,7 +172,7 @@ function remp_paywall_post_submitbox_misc_actions() {
 function remp_paywall_save_post($post_id, $post, $update) {
 	$key = '_dn_remp_paywall_access';
 
-	if (!current_user_can('edit_post', $post_id) || wp_is_post_autosave($post_id) || !isset($key . '_legacy')) {
+	if (!current_user_can('edit_post', $post_id) || wp_is_post_autosave($post_id) || !isset($_POST[$key . '_legacy'])) {
 		return;
 	}
 
