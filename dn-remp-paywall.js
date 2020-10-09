@@ -19,7 +19,7 @@
 			var setAttributes = props.setAttributes;
 
 			function updateBlockValue(blockValue) {
-				setAttributes({ ...blockValue });
+				setAttributes(blockValue);
 			}
 
 			return el(
